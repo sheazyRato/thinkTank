@@ -1,0 +1,198 @@
+ Critical Columns for Analysis
+
+These columns are expected to be frequently used for filtering, aggregation, feature engineering, or modeling in a big-data or analytics context:
+
+1. id → int
+   Unique identifier for each movie.
+
+2. title → string
+   Movie title; useful for joins, indexing, and text-based searches.
+
+3. vote_average → float
+   Average TMDB rating; useful for quality or sentiment analysis.
+
+4. vote_count → int
+   Number of votes; can be used for weighting ratings or measuring popularity.
+
+5. release_date → datetime
+   Theatrical release date; essential for time-series and trend analysis.
+
+6. revenue → int or float
+   Box office revenue in USD; a key financial metric.
+
+7. budget → int or float
+   Production budget in USD; required for ROI and profitability analysis.
+
+8. runtime → int
+   Movie duration in minutes; useful for content and pacing analysis.
+
+9. imdb_rating → float
+   IMDb average rating; provides an external quality metric.
+
+10. genres → liststring or array
+    Movie genres; useful for categorization and filtering.
+
+11. original_language → string
+    ISO language code; useful for regional or language-based analysis.
+
+12. popularity → float
+    TMDB popularity score; often used as a predictive feature.
+
+13. director → string or liststring
+    Director name(s); useful for creator-based analysis.
+
+14. cast → liststring
+    List of main cast members; can support actor popularity or network analysis.
+
+15. production_companies → liststring
+    Production studios; useful for company-level insights.
+
+
+
+ Recommended Data Types 
+
+| id                      | int                 | Unique identifier                      |
+| title                   | string              | Textual data                           |
+| vote_average            | float               | Decimal rating                         |
+| vote_count              | int                 | Whole number                           |
+| status                  | string              | Categorical value                      |
+| release_date            | datetime            | Enables date-based analysis            |
+| revenue                 | int or float        | Large numeric values                   |
+| runtime                 | int                 | Duration in minutes                    |
+| budget                  | int or float        | Large numeric values                   |
+| imdb_id                 | string              | Alphanumeric identifier                |
+| original_language       | string              | Language code                          |
+| original_title          | string              | Text field                             |
+| overview                | string              | Long-form text                         |
+| popularity              | float               | Continuous metric                      |
+| tagline                 | string              | Short text                             |
+| genres                  | list or string      | Often stored as JSON or delimited text |
+| production_companies    | list or string      | Structured list                        |
+| production_countries    | list or string      | Structured list                        |
+| spoken_languages        | list or string      | Structured list                        |
+| cast                    | list or string      | Structured list                        |
+| director                | string or list      | May include multiple values            |
+| director_of_photography | string or list      | May include multiple values            |
+| writers                 | list or string      | Structured list                        |
+| producers               | list or string      | Structured list                        |
+| music_composer          | string or list      | May include multiple values            |
+| imdb_rating             | float               | Decimal rating                         |
+| imdb_votes              | int                 | Whole number                           |
+| poster_path             | string              | File path or URL text                  |
+
+
+
+ Data Preparation Notes
+
+- List-like columns (e.g., genres, cast, production_companies) are often stored as JSON strings or delimited text and may require parsing into Python lists or normalization into separate tables.
+- Datetime conversion for release_date is essential for temporal analysis.
+- Missing values should be handled carefully, especially in financial and numeric fields such as revenue, budget, and runtime.
+- High-cardinality text fields (e.g., title, overview) can remain as strings initially but may later be tokenized or vectorized for NLP tasks.
+
+These are the columns that we are going to skip due to the data quality: 
+- tagline
+-director_of_photography
+-producers
+-music_composer
+-imdb_rating
+-imdb_votes
+-poster_path
+
+Data Preparation Strategy for The Ultimate 1Million Movies Dataset
+
+ Step 0: Initial Data Volume & Schema Validation
+- Check dataset size: Record initial row count, column count, and approximate memory usage.
+- Define expected schema based on retained critical columns (see updated table).
+- Log hardware/software specs (CPU, RAM, Python/Pandas versions) for reproducibility.
+- Note excluded columns: tagline, director_of_photography, producers, music_composer, imdb_rating, imdb_votes, poster_path due to poor data quality.
+
+ Step 1: Exploratory Data Inspection
+- Use .head() and .tail() to inspect formatting and consistency.
+- Use .info() to summarize data types, non-null counts, and memory usage.
+- Use .describe() for numeric columns to identify outliers or anomalies.
+- Exclude poor-quality columns from further inspection.
+
+ Step 2: Identify Critical Columns & Handle Nulls
+- Critical columns (retained): id, release_date, revenue, budget, vote_average, genres, director, original_language, cast, production_companies.
+- Action: Remove rows where any critical column is null.
+- Log removal count and percentage for reporting.
+
+ Step 3: Column-by-Column Data Cleaning
+For each retained column:
+
+1. Display current data type and sample values.
+2. Convert to appropriate data type (see updated schema below).
+3. Handle null values appropriately:
+   - Numeric columns (revenue, budget, runtime): Impute with median or 0 based on context.
+   - Categorical/text columns (genres, director, original_language): Fill with “Unknown” or “Not Specified”.
+   - Date column (release_date): If null, consider removal or imputation with mode.
+4. For list-like columns (genres, cast, production_companies):
+   - Parse JSON or comma-separated strings into Python lists.
+   - Consider flattening/exploding if needed for analysis.
+
+ Step 4: Data Quality & Consistency Checks
+- Check for duplicates in id.
+- Validate ranges: Ensure vote_average (0–10), runtime (>0), release_date (reasonable years).
+- Cross-validate related fields: e.g., revenue vs. budget.
+
+ Step 5: Post-Cleaning Validation & Sampling
+- Re-check .info() for updated data types and null counts.
+- Take random subsets of the data (e.g., 100 random rows) and inspect:
+  - Data types
+  - Value formats
+  - Null handling
+- Log final dataset size and cleaning summary.
+
+ Step 6: Documentation & Reporting
+- Maintain a cleaning log with:
+  - Rows removed
+  - Columns modified
+  - Imputation strategies
+  - Columns excluded due to poor data quality
+  - Time taken for key steps (for performance baseline in Section 2).
+
+
+
+| Column               | Data Type    | Null Handling               |
+| -------------------- | -------------| -------------------------   |
+| id                   | int          | Drop if null                |
+| title                | string       | Fill with "Unknown"         |
+| vote_average         | float        | Impute with column mean     |
+| vote_count           | int          | Impute with 0               |
+| release_date         | datetime     | Drop if null                |
+| revenue              | int          | Impute with 0               |
+| budget               | int          | Impute with 0               |
+| runtime              | int          | Impute with median          |
+| genres               | liststring   | Fill with "Unknown"         | 
+| original_language    | string       | Fill with "Unknown"         |
+| popularity           | float        | Impute with median          |
+| director             | string       | Fill with "Unknown"         |
+| cast                 | liststring   | Fill with "Unknown"         |
+| production_companies | liststring   | Fill with "Unknown"         |
+| production_countries | liststring   | Fill with "Unknown"         |
+| spoken_languages     | liststring   | Fill with "Unknown"         |
+| writers              | liststring   | Fill with "Unknown"         |
+| overview             | string       | Fill with "No overview"     |
+| status               | string       | Fill with "Unknown"         |
+
+
+
+ Excluded Columns (Poor Data Quality)
+- tagline
+- director_of_photography
+- producers
+- music_composer
+- imdb_rating
+- imdb_votes
+- poster_path
+
+These columns will be dropped entirely from the dataset before analysis.
+
+
+
+ Why This Updated Strategy is Suitable for Big Data
+- Focused cleaning: Removes low-quality data early, improving efficiency.
+- Scalable: Steps are logical and can be adapted to PySpark/Hadoop.
+- Traceable: Cleaning and exclusion decisions are documented.
+- Performance-aware: Timing and size tracking align with “big data” justification.
+- Quality-focused: Validation ensures reliable downstream analysis.
